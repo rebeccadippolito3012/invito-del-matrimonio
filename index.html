@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Save the Date – Gabriella & Francesco</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --rose:#c4a0a0;--rosedark:#8a5a5a;--dustblue:#8fa8bf;
+      --cream:#f9f4ef;--creamdk:#ede4dc;--gold:#c8a97a;
+      --text:#4a3a3a;--textlt:#7a6060;
+    }
+    body{min-height:100vh;font-family:'Raleway',sans-serif;background:var(--cream);display:flex;align-items:center;justify-content:center;padding:24px;overflow-x:hidden}
+    canvas#bg{position:fixed;inset:0;pointer-events:none;z-index:0}
+    canvas#confetti-canvas{position:fixed;inset:0;pointer-events:none;z-index:100}
+
+    .card{position:relative;z-index:1;width:100%;max-width:680px;background:rgba(255,252,248,.93);border:1px solid rgba(196,160,160,.22);border-radius:4px;box-shadow:0 30px 80px rgba(100,60,60,.12);text-align:center;animation:cardIn .9s cubic-bezier(.22,1,.36,1) both;overflow:hidden}
+    @keyframes cardIn{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
+    .intro-screen{display:block}
+    .card.opened .intro-screen{display:none}
+    .content-screen{display:none;animation:fadeUp .7s cubic-bezier(.22,1,.36,1) both}
+    .card.opened .content-screen{display:block}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+
+    .ribbon-top{background:linear-gradient(135deg,var(--dustblue),var(--rose));padding:9px 0;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#fff;font-family:'Raleway',sans-serif;font-weight:500}
+
+    /* BUSTA */
+    .envelope-scene{max-width:400px;margin:32px auto 12px;padding:0 24px}
+    .envelope{position:relative;width:100%;padding-bottom:63%}
+    .env-body{position:absolute;inset:0;border:1px solid #ddd0c8;border-radius:3px;background:#fdf8f4;box-shadow:0 14px 48px rgba(140,80,80,.12)}
+    .env-tri-left{position:absolute;bottom:0;left:0;width:0;height:0;border-bottom:130px solid #f5ede6;border-right:200px solid transparent;z-index:1}
+    .env-tri-right{position:absolute;bottom:0;right:0;width:0;height:0;border-bottom:130px solid #f5ede6;border-left:200px solid transparent;z-index:1}
+    .env-bottom{position:absolute;bottom:-1px;left:-1px;right:-1px;overflow:hidden;height:52%;z-index:2}
+    .env-bottom::after{content:'';position:absolute;bottom:0;left:0;right:0;height:0;border-left:200px solid transparent;border-right:200px solid transparent;border-bottom:128px solid #f9f2ec}
+    .env-flap{position:absolute;top:-1px;left:-1px;right:-1px;height:54%;z-index:4;transform-origin:top center;transform:rotateX(0deg);transition:transform .65s cubic-bezier(.22,1,.36,1);overflow:hidden}
+    .env-flap::before{content:'';position:absolute;top:0;left:0;right:0;height:0;border-left:200px solid transparent;border-right:200px solid transparent;border-top:145px solid var(--rose)}
+    .env-flap::after{content:'';position:absolute;top:143px;left:0;right:0;height:1px;background:linear-gradient(to right,transparent 4%,rgba(140,80,80,.18) 30%,rgba(140,80,80,.18) 70%,transparent 96%)}
+
+    .env-seal{position:absolute;left:50%;bottom:14%;transform:translateX(-50%);z-index:5;transition:opacity .3s,transform .3s}
+    .seal-btn{appearance:none;border:none;cursor:pointer;width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,#f5e8e0,#edddd4);border:2px solid #fff;outline:2px solid var(--rose);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;box-shadow:0 6px 24px rgba(160,100,100,.22);animation:sealPulse 2.5s ease-in-out infinite}
+    @keyframes sealPulse{0%,100%{transform:scale(1);box-shadow:0 6px 22px rgba(196,160,160,.35)}50%{transform:scale(1.06);box-shadow:0 10px 30px rgba(196,160,160,.55)}}
+    .seal-btn:hover{animation:none;transform:scale(1.09)}
+    .seal-btn:active{animation:none;transform:scale(.95)}
+    .seal-icon{font-size:22px;line-height:1}
+    .seal-top{font-size:9px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--rosedark);font-family:'Raleway',sans-serif;line-height:1;margin-top:2px}
+    .envelope.opening .env-flap{transform:rotateX(-180deg)}
+    .envelope.opening .env-seal{opacity:0;transform:translateX(-50%) scale(.65)}
+
+    .letter-pop{position:absolute;left:50%;bottom:10%;transform:translateX(-50%) translateY(0);width:68%;background:#fffcf8;border:1px solid #e8ddd5;border-radius:3px;box-shadow:0 4px 22px rgba(140,80,80,.1);z-index:3;padding:14px 16px 12px;opacity:0;transition:transform .55s .4s cubic-bezier(.22,1,.36,1),opacity .45s .4s;pointer-events:none;background-image:repeating-linear-gradient(transparent,transparent 19px,#f0e8e0 19px,#f0e8e0 20px)}
+    .envelope.opening .letter-pop{transform:translateX(-50%) translateY(-92%);opacity:1;pointer-events:auto}
+    .lp-header{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:8px;margin-bottom:8px;border-bottom:1px solid #f0e4dc}
+    .lp-from{font-family:'Cormorant Garamond',serif;font-size:10px;color:var(--rose);font-style:italic;line-height:1.5}
+    .lp-stamp{width:26px;height:32px;border:1px solid #ddd0c4;border-radius:2px;background:linear-gradient(135deg,#f0e0d4,#e8cfc0);display:flex;align-items:center;justify-content:center;font-size:12px}
+    .lp-lines{display:flex;flex-direction:column;gap:4px}
+    .lp-line{height:3px;border-radius:2px;background:#ecddd4}
+    .lp-line.d{background:#ddd0c8}.lp-line.f{width:100%}.lp-line.m{width:80%}.lp-line.s{width:56%}.lp-line.xs{width:38%}
+    .lp-footer{margin-top:10px;padding-top:8px;border-top:1px solid #f0e4dc;display:flex;justify-content:space-between;align-items:flex-end}
+    .lp-sign{font-family:'Cormorant Garamond',serif;font-size:11px;font-style:italic;color:var(--rose);line-height:1.4}
+    .env-caption{margin:14px 0 28px;color:var(--textlt);font-size:.84rem;letter-spacing:.05em}
+
+    /* CONTENT */
+    .content-inner{padding:32px 32px 48px}
+    .month-strip{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;max-width:420px;margin:0 auto 28px;font-size:.8rem}
+    .month-title{grid-column:1/-1;font-family:'Raleway',sans-serif;font-weight:600;letter-spacing:.35em;text-transform:uppercase;font-size:.74rem;color:var(--dustblue);padding-bottom:12px}
+    .day-name{font-size:.66rem;letter-spacing:.07em;color:var(--textlt);padding:4px 0}
+    .day-name.it{font-style:italic}
+    .day-num{font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--text);padding:4px 0}
+    .day-num.wedding{position:relative;width:40px;height:40px;margin:0 auto;display:flex;align-items:center;justify-content:center;color:var(--rosedark);font-weight:600;font-size:1.2rem}
+    .day-num.wedding::before{content:'';position:absolute;inset:0;border:1.5px dashed var(--rose);border-radius:50%;animation:heartPulse 2.5s ease-in-out infinite}
+    @keyframes heartPulse{0%,100%{transform:scale(1);opacity:.7}50%{transform:scale(1.1);opacity:1}}
+
+    .script-title{font-family:'Cormorant Garamond',serif;font-size:clamp(2.2rem,6vw,3.6rem);font-style:italic;font-weight:300;color:var(--rosedark);line-height:1.1;margin-bottom:6px}
+    .announce{font-size:.68rem;letter-spacing:.28em;text-transform:uppercase;color:var(--dustblue);margin-bottom:18px}
+    .names{font-family:'Cormorant Garamond',serif;font-size:clamp(1.8rem,5.5vw,3rem);font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--text);line-height:1.1;margin-bottom:26px}
+    .amp{color:var(--rose);font-style:italic;font-weight:300;letter-spacing:.05em}
+
+    .divider{display:flex;align-items:center;gap:14px;max-width:260px;margin:0 auto 24px}
+    .divider-line{flex:1;height:1px;background:linear-gradient(to right,transparent,var(--rose),transparent)}
+    .divider-ornament{color:var(--rose);font-size:14px}
+
+    .countdown-wrap{margin:24px auto 8px;max-width:440px}
+    .countdown-label{font-size:.67rem;text-transform:uppercase;letter-spacing:.18em;color:var(--dustblue);margin-bottom:10px}
+    .countdown-grid{display:flex;justify-content:center;gap:10px}
+    .cd-unit{background:rgba(255,255,255,.7);border:1px solid rgba(196,160,160,.25);border-radius:6px;padding:10px 14px;min-width:64px}
+    .cd-num{font-family:'Cormorant Garamond',serif;font-size:2rem;color:var(--rosedark);line-height:1;font-weight:600}
+    .cd-lbl{font-size:8px;text-transform:uppercase;letter-spacing:.12em;color:var(--textlt);margin-top:3px}
+
+    .info-line{font-size:.74rem;letter-spacing:.22em;text-transform:uppercase;color:var(--text);line-height:2.2;font-weight:500}
+    .info-line.small{font-size:.66rem;color:var(--textlt);letter-spacing:.14em;line-height:2}
+    .info-line.note{font-size:.67rem;color:var(--textlt);letter-spacing:.08em;line-height:1.9;font-weight:400;text-transform:none;font-style:italic;margin-top:14px;padding:0 12px}
+
+    .btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:28px}
+    .aBtn{padding:12px 22px;border-radius:2px;background:linear-gradient(135deg,var(--rose),#a87878);color:#fff;font-size:.72rem;font-weight:600;font-family:'Raleway',sans-serif;text-decoration:none;letter-spacing:.12em;text-transform:uppercase;box-shadow:0 4px 16px rgba(160,100,100,.22);transition:transform .2s,box-shadow .2s;cursor:pointer;border:none}
+    .aBtn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(160,100,100,.32)}
+    .aBtn.outline{background:transparent;border:1px solid var(--rose);color:var(--rosedark);box-shadow:none}
+    .aBtn.outline:hover{background:rgba(196,160,160,.08)}
+    .aBtn.grey{background:linear-gradient(135deg,#c0b8b4,#a09090);box-shadow:none}
+    .aBtn.blue{background:linear-gradient(135deg,var(--dustblue),#7090a8);box-shadow:0 4px 16px rgba(112,144,168,.22)}
+
+    .contacts{display:flex;justify-content:space-between;padding:18px 32px;border-top:1px solid rgba(196,160,160,.2);font-size:.63rem;letter-spacing:.15em;text-transform:uppercase;color:var(--textlt)}
+
+    @media(max-width:560px){
+      .content-inner{padding:28px 18px 36px}
+      .aBtn{width:100%;text-align:center}
+      .env-tri-left{border-right-width:50vw;border-bottom-width:36vw}
+      .env-tri-right{border-left-width:50vw;border-bottom-width:36vw}
+      .env-flap::before,.env-bottom::after{border-left-width:50vw;border-right-width:50vw}
+      .env-flap::before{border-top-width:32vw}
+      .env-flap::after{top:calc(32vw - 2px)}
+      .env-bottom::after{border-bottom-width:30vw}
+      .countdown-grid{gap:6px}
+      .cd-unit{min-width:52px;padding:8px 10px}
+      .contacts{flex-direction:column;gap:8px;align-items:center;text-align:center}
+    }
+  </style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+<canvas id="confetti-canvas"></canvas>
+
+<main class="card" id="card">
+
+  <div class="ribbon-top">✦ Save the Date ✦</div>
+
+  <!-- SCHERMATA BUSTA -->
+  <section class="intro-screen" style="padding:0 24px 32px">
+    <div class="envelope-scene">
+      <div class="envelope" id="envelope">
+        <div class="env-body"></div>
+        <div class="env-tri-left"></div>
+        <div class="env-tri-right"></div>
+        <div class="env-bottom"></div>
+        <div class="env-flap"></div>
+        <div class="letter-pop">
+          <div class="lp-header">
+            <div class="lp-from">Cara amica,<br>sei invitata…</div>
+            <div class="lp-stamp">💌</div>
+          </div>
+          <div class="lp-lines">
+            <div class="lp-line d f"></div><div class="lp-line m"></div>
+            <div class="lp-line f"></div><div class="lp-line s"></div>
+            <div class="lp-line f"></div><div class="lp-line xs"></div>
+          </div>
+          <div class="lp-footer">
+            <div class="lp-sign">Con amore,<br><strong>Gabriella & Francesco</strong></div>
+            <div style="font-size:13px;opacity:.6;padding-bottom:2px">🤍</div>
+          </div>
+        </div>
+        <div class="env-seal">
+          <button class="seal-btn" id="openBtn">
+            <span class="seal-icon">💍</span>
+            <span class="seal-top">Apri</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <p class="env-caption">Hai ricevuto un invito speciale</p>
+  </section>
+
+  <!-- INVITO -->
+  <section class="content-screen" id="contentScreen">
+    <div class="content-inner">
+
+      <!-- CALENDARIO MAGGIO -->
+      <div class="month-strip">
+        <div class="month-title">Maggio</div>
+        <div class="day-name">Lun</div>
+        <div class="day-name it">Mar</div>
+        <div class="day-name it">Mer</div>
+        <div class="day-name it">Gio</div>
+        <div class="day-name it">Ven</div>
+        <div class="day-name it">Sab</div>
+        <div class="day-name it">Dom</div>
+        <div class="day-num">25</div>
+        <div class="day-num">26</div>
+        <div class="day-num">27</div>
+        <div class="day-num">28</div>
+        <div class="day-num">29</div>
+        <div class="day-num">30</div>
+        <div class="day-num wedding">31</div>
+      </div>
+
+      <div class="script-title">save the date</div>
+      <div class="announce">annunciano il loro matrimonio</div>
+      <div class="names">Gabriella <span class="amp">&</span> Francesco</div>
+
+      <!-- COUNTDOWN -->
+      <div class="countdown-wrap">
+        <div class="countdown-label">Manca ancora</div>
+        <div class="countdown-grid">
+          <div class="cd-unit"><div class="cd-num" id="cd-days">--</div><div class="cd-lbl">Giorni</div></div>
+          <div class="cd-unit"><div class="cd-num" id="cd-hours">--</div><div class="cd-lbl">Ore</div></div>
+          <div class="cd-unit"><div class="cd-num" id="cd-mins">--</div><div class="cd-lbl">Minuti</div></div>
+          <div class="cd-unit"><div class="cd-num" id="cd-secs">--</div><div class="cd-lbl">Secondi</div></div>
+        </div>
+      </div>
+
+      <div class="divider" style="margin-top:26px"><div class="divider-line"></div><div class="divider-ornament">✦</div><div class="divider-line"></div></div>
+
+      <!-- INFO -->
+      <div>
+        <div class="info-line">Domenica 31 Maggio 2026</div>
+        <div class="info-line">Alle ore 11.30</div>
+        <br>
+        <div class="info-line small">Presso la Sala Ricevimenti</div>
+        <div class="info-line">Reggia dei Tessali</div>
+        <div class="info-line small">( S.da Statale 106 Jonica, 74013 Ginosa - TA )</div>
+        <br>
+        <div class="info-line small">Dove al termine del rito celebrativo</div>
+        <div class="info-line small">proseguiranno i festeggiamenti</div>
+        <div class="info-line note">
+          È gradita gentile conferma entro il 30 aprile<br>
+          Specificare eventuali intolleranze o allergie
+        </div>
+      </div>
+
+      <div class="divider" style="margin-top:24px"><div class="divider-line"></div><div class="divider-ornament">✦</div><div class="divider-line"></div></div>
+
+      <!-- BOTTONI -->
+      <div class="btns">
+        <a class="aBtn outline" href="https://maps.google.com/maps?q=Reggia+dei+Tessali+Ginosa+Taranto" target="_blank">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style="display:inline;vertical-align:middle;margin-right:5px"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z" fill="var(--rosedark)"/></svg>
+          Mappa
+        </a>
+        <button class="aBtn" id="btnPartecipo">Partecipo 🥂</button>
+        <a class="aBtn grey" href="https://wa.me/393899945722?text=Ciao%20Gabriella!%20Purtroppo%20non%20riesco%20a%20partecipare%20al%20vostro%20matrimonio%20" target="_blank">Non partecipo</a>
+        <button class="aBtn blue" id="btnCal">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style="display:inline;vertical-align:middle;margin-right:5px"><rect x="3" y="4" width="18" height="18" rx="2" stroke="#fff" stroke-width="2" fill="none"/><path d="M16 2v4M8 2v4M3 10h18" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+          Salva in calendario
+        </button>
+      </div>
+      <p style="margin-top:10px;font-size:.67rem;color:var(--textlt);letter-spacing:.05em">📅 Apre Google Calendar — aggiungi l'evento in un click</p>
+
+    </div>
+
+    <div class="contacts">
+      <span>Gabriella &nbsp;3899945722</span>
+      <span>Francesco &nbsp;3929913694</span>
+    </div>
+  </section>
+
+</main>
+
+<script>
+// ── SFONDO ACQUERELLO ──
+const canvas = document.getElementById('bg');
+const ctx = canvas.getContext('2d');
+let W, H;
+let blobs = [];
+function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+const BCOLORS = ['#c4a0a066','#8fa8bf55','#d4b8b055','#a8bfd055','#e8d0c844','#b0c4d855'];
+function Blob() {
+  this.reset = function(init) {
+    this.x = Math.random()*W; this.y = init ? Math.random()*H : (Math.random()>.5?-80:H+80);
+    this.r = 100+Math.random()*180; this.vy=(Math.random()-.5)*.15; this.vx=(Math.random()-.5)*.1;
+    this.color = BCOLORS[Math.floor(Math.random()*BCOLORS.length)];
+  };
+  this.reset(true);
+}
+function drawBg() {
+  ctx.clearRect(0,0,W,H);
+  blobs.forEach(b => {
+    const g = ctx.createRadialGradient(b.x,b.y,0,b.x,b.y,b.r);
+    g.addColorStop(0,b.color); g.addColorStop(1,'transparent');
+    ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
+    ctx.fillStyle=g; ctx.fill();
+    b.x+=b.vx; b.y+=b.vy;
+    if(b.y<-220||b.y>H+220) b.reset(false);
+  });
+  requestAnimationFrame(drawBg);
+}
+resize();
+for(let i=0;i<20;i++) blobs.push(new Blob());
+drawBg();
+window.addEventListener('resize',resize);
+
+// ── CORIANDOLI ──
+const cCanvas=document.getElementById('confetti-canvas');
+const cCtx=cCanvas.getContext('2d');
+let confettis=[];
+function resizeC(){cCanvas.width=window.innerWidth;cCanvas.height=window.innerHeight;}
+resizeC(); window.addEventListener('resize',resizeC);
+const PCOLS=['#c4a0a0','#ddc4c4','#8fa8bf','#e8d4c8','#f9c784','#fff','#b8d0e0'];
+function Confetto(x,y){
+  this.x=x||Math.random()*cCanvas.width; this.y=y||-10;
+  this.w=6+Math.random()*8; this.h=3+Math.random()*5;
+  this.color=PCOLS[Math.floor(Math.random()*PCOLS.length)];
+  this.rot=Math.random()*360; this.vx=(Math.random()-.5)*7;
+  this.vy=3+Math.random()*5; this.vr=(Math.random()-.5)*7;
+  this.gravity=.12; this.alive=true;
+}
+function shootConfetti(ox,oy){
+  for(let i=0;i<110;i++){const c=new Confetto(ox,oy);c.vy=-(5+Math.random()*10);c.vx=(Math.random()-.5)*13;confettis.push(c);}
+  animateC();
+}
+function animateC(){
+  cCtx.clearRect(0,0,cCanvas.width,cCanvas.height);
+  confettis=confettis.filter(c=>c.alive);
+  confettis.forEach(c=>{
+    c.vy+=c.gravity;c.x+=c.vx;c.y+=c.vy;c.rot+=c.vr;
+    if(c.y>cCanvas.height+20)c.alive=false;
+    cCtx.save();cCtx.globalAlpha=.85;
+    cCtx.translate(c.x,c.y);cCtx.rotate(c.rot*Math.PI/180);
+    cCtx.fillStyle=c.color;cCtx.fillRect(-c.w/2,-c.h/2,c.w,c.h);
+    cCtx.restore();
+  });
+  if(confettis.length>0)requestAnimationFrame(animateC);
+  else cCtx.clearRect(0,0,cCanvas.width,cCanvas.height);
+}
+
+// ── FRUSCIO ──
+function playRustle(){
+  try{
+    const ac=new(window.AudioContext||window.webkitAudioContext)();
+    const dur=1.4,buf=ac.createBuffer(1,ac.sampleRate*dur,ac.sampleRate);
+    const d=buf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1);
+    const src=ac.createBufferSource();src.buffer=buf;
+    const bp=ac.createBiquadFilter();bp.type='bandpass';bp.frequency.value=1800;bp.Q.value=0.6;
+    const g=ac.createGain();g.gain.setValueAtTime(0,ac.currentTime);
+    g.gain.linearRampToValueAtTime(0.14,ac.currentTime+.06);
+    g.gain.exponentialRampToValueAtTime(0.0001,ac.currentTime+dur);
+    src.connect(bp);bp.connect(g);g.connect(ac.destination);
+    src.start();src.stop(ac.currentTime+dur);
+  }catch(e){}
+}
+
+// ── APERTURA ──
+document.getElementById('openBtn').addEventListener('click',()=>{
+  playRustle();
+  document.getElementById('envelope').classList.add('opening');
+  setTimeout(()=>{
+    document.getElementById('card').classList.add('opened');
+    startCountdown();
+  },900);
+});
+
+// ── PARTECIPO ──
+document.getElementById('btnPartecipo').addEventListener('click',function(){
+  const r=this.getBoundingClientRect();
+  shootConfetti(r.left+r.width/2,r.top+r.height/2);
+  window.open('https://wa.me/393899945722?text=Ciao%20Gabriella!%20Confermo%20che%20partecipo%20al%20vostro%20matrimonio%20%F0%9F%A5%82','_blank');
+});
+
+// ── COUNTDOWN ──
+const WEDDING=new Date('2026-05-31T11:30:00');
+function startCountdown(){
+  function tick(){
+    const diff=WEDDING-new Date();
+    if(diff<=0){['cd-days','cd-hours','cd-mins','cd-secs'].forEach(id=>document.getElementById(id).textContent='0');return;}
+    document.getElementById('cd-days').textContent=String(Math.floor(diff/86400000)).padStart(2,'0');
+    document.getElementById('cd-hours').textContent=String(Math.floor((diff%86400000)/3600000)).padStart(2,'0');
+    document.getElementById('cd-mins').textContent=String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
+    document.getElementById('cd-secs').textContent=String(Math.floor((diff%60000)/1000)).padStart(2,'0');
+  }
+  tick();setInterval(tick,1000);
+}
+
+// ── CALENDARIO ──
+document.getElementById('btnCal').addEventListener('click',()=>{
+  const t=encodeURIComponent('Matrimonio di Gabriella & Francesco 💍');
+  const det=encodeURIComponent('Cerimonia e festeggiamenti presso la Reggia dei Tessali.\nConferma entro il 30 aprile. Specificare eventuali intolleranze o allergie.');
+  const loc=encodeURIComponent('Reggia dei Tessali, S.da Statale 106 Jonica, 74013 Ginosa TA');
+  window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${t}&dates=20260531T113000/20260531T200000&details=${det}&location=${loc}`,'_blank');
+});
+</script>
+</body>
+</html>
